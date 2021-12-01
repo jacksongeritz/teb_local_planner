@@ -149,14 +149,14 @@ pluginlib_export_plugin_description_file(nav2_core teb_local_planner_plugin.xml)
 ## Testing ##
 #############
 
-if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
-  #ament_add_gtest(homotopy_class_planner_test
-  #    test/homotopy_class_planner_test.cpp
-  #)
-  #target_link_libraries(homotopy_class_planner_test
-  #    teb_local_planner
-  #)
-endif()
+# if(BUILD_TESTING)
+#   find_package(ament_cmake_gtest REQUIRED)
+#   ament_add_gtest(homotopy_class_planner_test
+#      test/homotopy_class_planner_test.cpp
+#   )
+#   target_link_libraries(homotopy_class_planner_test
+#      teb_local_planner
+#   )
+# endif()
 
 ament_package()
