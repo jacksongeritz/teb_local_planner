@@ -93,6 +93,8 @@ void TebOptimalPlanner::initialize(nav2_util::LifecycleNode::SharedPtr node, con
   vel_goal_.second.linear.y = 0;
   vel_goal_.second.angular.z = 0;
   initialized_ = true;
+  
+  setVisualization(visual);
 }
 
 
@@ -105,7 +107,7 @@ void TebOptimalPlanner::visualize()
 {
   if (!visualization_)
     return;
- 
+
   visualization_->publishLocalPlanAndPoses(teb_);
   
   if (teb_.sizePoses() > 0)
@@ -113,7 +115,7 @@ void TebOptimalPlanner::visualize()
   
   if (cfg_->trajectory.publish_feedback)
     visualization_->publishFeedbackMessage(*this, *obstacles_);
- 
+
 }
 
 
@@ -1220,7 +1222,7 @@ bool TebOptimalPlanner::isTrajectoryFeasible(dwb_critics::ObstacleFootprintCriti
   for (int i=0; i <= look_ahead_idx; ++i)
   {
     teb().Pose(i).toPoseMsg(pose2d);
-    if ( costmap_model->scorePose(pose2d, dwb_critics::getOrientedFootprint(pose2d, footprint_spec)) < 0 ) {
+    if (!isPoseValid(pose2d, costmap_model, footprint_spec)){
       if (visualization_)
       {
         visualization_->publishInfeasibleRobotPose(teb().Pose(i), *robot_model_);
@@ -1247,9 +1249,8 @@ bool TebOptimalPlanner::isTrajectoryFeasible(dwb_critics::ObstacleFootprintCriti
                                                            delta_rot / (n_additional_samples + 1.0));
           intermediate_pose.toPoseMsg(pose2d);
 
-          if ( costmap_model->scorePose(pose2d, dwb_critics::getOrientedFootprint(pose2d, footprint_spec)) < 0 )
-          {
-            if (visualization_) 
+          if (!isPoseValid(pose2d, costmap_model, footprint_spec)){
+            if (visualization_)
             {
               visualization_->publishInfeasibleRobotPose(intermediate_pose, *robot_model_);
             }
@@ -1261,5 +1262,19 @@ bool TebOptimalPlanner::isTrajectoryFeasible(dwb_critics::ObstacleFootprintCriti
   }
   return true;
 }
+
+bool TebOptimalPlanner::isPoseValid(geometry_msgs::msg::Pose2D pose2d, dwb_critics::ObstacleFootprintCritic* costmap_model,
+                           const std::vector<geometry_msgs::msg::Point>& footprint_spec)
+{
+  try {
+    if ( costmap_model->scorePose(pose2d, dwb_critics::getOrientedFootprint(pose2d, footprint_spec)) < 0 ) {
+      return false;
+    }
+  } catch (...) {
+    return false;
+  }
+  return true;
+}
+
 
 } // namespace teb_local_planner
